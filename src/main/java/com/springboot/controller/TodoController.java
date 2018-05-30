@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import com.springboot.model.Todo;
-import com.springboot.service.TodoService;
+import com.springboot.service.TodoRepository;
 
 @Controller
 public class TodoController {
-	
+		
 	@Autowired
-	TodoService service;
+	TodoRepository repository;
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -38,7 +38,8 @@ public class TodoController {
 	@RequestMapping(value="/list-todos", method = RequestMethod.GET)
 	public String showTodos(ModelMap model ) {
 		String name = getLoggedInUserName(model);
-		model.put("todos", service.retrieveTodos(name));
+		model.put("todos", repository.findByUser(name));
+		//model.put("todos", service.retrieveTodos(name));
 		return "list-todos";
  }
 
@@ -61,15 +62,17 @@ public class TodoController {
 	@RequestMapping(value="/delete-todo", method = RequestMethod.GET)
 	public String deleteTodo(@RequestParam int id) {
 		
-		if(id==1)
-			throw new RuntimeException("Something went wrong");
+//		if(id==1)
+//			throw new RuntimeException("Something went wrong");
 		
-		service.deleteTodo(id);
+		repository.delete(id);
+		//service.deleteTodo(id);
 		return "redirect:/list-todos";
  }
 	@RequestMapping(value="/update-todo", method = RequestMethod.GET)
 	public String showUpdateTodoPage(@RequestParam int id, ModelMap model) {
-		Todo todo = service.retrieveTodo(id);
+		Todo todo = repository.findOne(id);
+		//Todo todo = service.retrieveTodo(id);
 		model.put("todo", todo);
 		return "todo";
  }
@@ -82,7 +85,8 @@ public class TodoController {
 		
 		todo.setUser(getLoggedInUserName(model));
 		
-		service.updateTodo(todo);
+		repository.save(todo);
+		//service.updateTodo(todo);
 		
 		return "redirect:/list-todos";
  }
@@ -93,7 +97,9 @@ public class TodoController {
 			return "todo";
 		}
 		
-		service.addTodo(getLoggedInUserName(model), todo.getDesc(), todo.getTargetDate(), false);
+		todo.setUser(getLoggedInUserName(model));
+		repository.save(todo);
+		//service.addTodo(getLoggedInUserName(model), todo.getDesc(), todo.getTargetDate(), false);
 		return "redirect:/list-todos";
  }
 	}
